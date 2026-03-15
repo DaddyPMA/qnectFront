@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://qnect-backend.up.railway.app/api';
+const API_URL = 'https://qnectback-production.up.railway.app';
 
 const api = axios.create({
   baseURL: API_URL,
