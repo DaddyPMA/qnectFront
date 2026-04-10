@@ -130,10 +130,40 @@ const DashboardPage = () => {
           <div style={{ marginBottom: '1rem' }}>{breadcrumbs}</div>
 
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-            <Link to="/friends" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
+            <Link
+              to="/friends"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.75rem 1.25rem',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                minWidth: '160px',
+                textAlign: 'center',
+              }}
+            >
               Friends & Network
             </Link>
-            <Link to={`/profile/${currentUserId}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
+            <Link
+              to={currentUserId ? `/profile/${currentUserId}` : '/profile'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.75rem 1.25rem',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                minWidth: '140px',
+                textAlign: 'center',
+              }}
+            >
               My Profile
             </Link>
           </div>
