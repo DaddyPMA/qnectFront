@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { fileAPI, folderAPI } from '../api';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const currentUserId = user?.id;
   const [files, setFiles] = useState([]);
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -126,7 +127,16 @@ const DashboardPage = () => {
       <main style={{ padding: '2rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           {/* Breadcrumbs */}
-          <div style={{ marginBottom: '2rem' }}>{breadcrumbs}</div>
+          <div style={{ marginBottom: '1rem' }}>{breadcrumbs}</div>
+
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+            <Link to="/friends" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
+              Friends & Network
+            </Link>
+            <Link to={`/profile/${currentUserId}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
+              My Profile
+            </Link>
+          </div>
 
           {/* Alerts */}
           {error && <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '4px', marginBottom: '1rem', border: '1px solid #fecaca' }}>{error}</div>}
