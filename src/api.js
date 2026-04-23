@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = 'https://qnectback-production.up.railway.app/api';
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://qnectback-production.up.railway.app/api'
+  : 'http://localhost:3001/api';
 
 const api = axios.create({
   baseURL: API_URL,
