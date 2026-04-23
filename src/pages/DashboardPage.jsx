@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { fileAPI, folderAPI } from '../api';
 
@@ -101,6 +101,14 @@ const DashboardPage = () => {
     navigate('/login');
   };
 
+  const handleGoToFriends = () => {
+    navigate('/friends');
+  };
+
+  const handleGoToProfile = () => {
+    navigate(`/profile/${currentUserId}`);
+  };
+
   const breadcrumbs = currentFolderId ? (
     <button
       onClick={() => setCurrentFolderId(null)}
@@ -149,44 +157,9 @@ const DashboardPage = () => {
           <div style={{ marginBottom: '1rem' }}>{breadcrumbs}</div>
 
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-            <Link
-              to="/friends"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.75rem 1.25rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                minWidth: '160px',
-                textAlign: 'center',
-              }}
-            >
-              Friends & Network
-            </Link>
-            <Link
-              to={currentUserId ? `/profile/${currentUserId}` : '/profile'}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.75rem 1.25rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                minWidth: '140px',
-                textAlign: 'center',
-              }}
-            >
-              My Profile
-            </Link>
+            <button onClick={handleGoToFriends}>Friends & Network</button>
+            <button onClick={handleGoToProfile}>My Profile</button>
           </div>
-          
 
           {error && <div>{error}</div>}
           {success && <div>{success}</div>}
