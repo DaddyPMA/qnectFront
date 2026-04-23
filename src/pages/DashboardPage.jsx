@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { fileAPI, folderAPI } from '../api';
 
@@ -100,6 +100,14 @@ const DashboardPage = () => {
     navigate('/login');
   };
 
+  const handleGoToFriends = () => {
+    navigate('/friends');
+  };
+
+  const handleGoToProfile = () => {
+    navigate(`/profile/${currentUserId}`);
+  };
+
   const breadcrumbs = currentFolderId ? (
     <button onClick={() => setCurrentFolderId(null)} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }}>
       ← Back to root
@@ -130,42 +138,38 @@ const DashboardPage = () => {
           <div style={{ marginBottom: '1rem' }}>{breadcrumbs}</div>
 
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-            <Link
-              to="/friends"
+            <button
+              onClick={handleGoToFriends}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 padding: '0.75rem 1.25rem',
                 backgroundColor: '#2563eb',
                 color: 'white',
+                border: 'none',
                 borderRadius: '6px',
-                textDecoration: 'none',
+                cursor: 'pointer',
                 fontWeight: 600,
                 minWidth: '160px',
                 textAlign: 'center',
               }}
             >
               Friends & Network
-            </Link>
-            <Link
-              to={currentUserId ? `/profile/${currentUserId}` : '/profile'}
+            </button>
+            <button
+              onClick={handleGoToProfile}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 padding: '0.75rem 1.25rem',
                 backgroundColor: '#2563eb',
                 color: 'white',
+                border: 'none',
                 borderRadius: '6px',
-                textDecoration: 'none',
+                cursor: 'pointer',
                 fontWeight: 600,
                 minWidth: '140px',
                 textAlign: 'center',
               }}
             >
               My Profile
-            </Link>
+            </button>
           </div>
 
           {/* Alerts */}
