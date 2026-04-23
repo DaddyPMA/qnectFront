@@ -157,12 +157,173 @@ const DashboardPage = () => {
           <div style={{ marginBottom: '1rem' }}>{breadcrumbs}</div>
 
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-            <button onClick={handleGoToFriends}>Friends & Network</button>
-            <button onClick={handleGoToProfile}>My Profile</button>
+            <button
+              onClick={handleGoToFriends}
+              style={{
+                padding: '0.75rem 1.25rem',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                minWidth: '160px',
+              }}
+            >
+              Friends & Network
+            </button>
+            <button
+              onClick={handleGoToProfile}
+              style={{
+                padding: '0.75rem 1.25rem',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                minWidth: '140px',
+              }}
+            >
+              My Profile
+            </button>
           </div>
 
-          {error && <div>{error}</div>}
-          {success && <div>{success}</div>}
+          {error && (
+            <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '4px', marginBottom: '1rem', border: '1px solid #fecaca' }}>
+              {error}
+            </div>
+          )}
+          {success && (
+            <div style={{ padding: '1rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '4px', marginBottom: '1rem', border: '1px solid #bbf7d0' }}>
+              {success}
+            </div>
+          )}
+
+          <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+            <h2 style={{ marginBottom: '1rem' }}>Create New Folder</h2>
+            <form onSubmit={handleCreateFolder} style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Folder name"
+                style={{ flex: 1, padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+              />
+              <button
+                type="submit"
+                style={{ padding: '0.75rem 1.5rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Create Folder
+              </button>
+            </form>
+          </div>
+
+          <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+            <h2 style={{ marginBottom: '1rem' }}>Upload File</h2>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <label htmlFor="file-upload" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Choose file</label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  onChange={handleFileUpload}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label htmlFor="permission" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Permission</label>
+                <select
+                  id="permission"
+                  value={filePermission}
+                  onChange={(e) => setFilePermission(e.target.value)}
+                  style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                >
+                  <option value="private">Private</option>
+                  <option value="friends">Friends</option>
+                  <option value="public">Public</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {folders.length > 0 && (
+            <div style={{ marginBottom: '2rem' }}>
+              <h2 style={{ marginBottom: '1rem' }}>Folders</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                {folders.map((folder) => (
+                  <div key={folder.id} style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+                      <h3
+                        style={{ cursor: 'pointer', color: '#2563eb', margin: 0 }}
+                        onClick={() => setCurrentFolderId(folder.id)}
+                      >
+                        📁 {folder.name}
+                      </h3>
+                      <button
+                        onClick={() => handleDeleteFolder(folder.id)}
+                        style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '1.25rem' }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: 0 }}>{folder.childrenCount || 0} subfolder(s)</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {files.length > 0 && (
+            <div>
+              <h2 style={{ marginBottom: '1rem' }}>Files</h2>
+              <div style={{ backgroundColor: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Name</th>
+                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Size</th>
+                      <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Permission</th>
+                      <th style={{ padding: '1rem', textAlign: 'center', fontWeight: '600' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {files.map((file) => (
+                      <tr key={file.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <td style={{ padding: '1rem' }}>{file.originalName}</td>
+                        <td style={{ padding: '1rem', color: '#6b7280' }}>{(parseInt(file.size, 10) / 1024).toFixed(2)} KB</td>
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', backgroundColor: '#dbeafe', color: '#0c4a6e', borderRadius: '4px', fontSize: '0.875rem' }}>
+                            {file.permission}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'center' }}>
+                          <button
+                            onClick={() => handleDeleteFile(file.id)}
+                            style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '1.25rem' }}
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {!loading && files.length === 0 && folders.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+              <p>No files or folders yet. Create a folder or upload a file to get started!</p>
+            </div>
+          )}
+
+          {loading && (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <div style={{ display: 'inline-block', width: '2rem', height: '2rem', border: '2px solid #d1d5db', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            </div>
+          )}
         </div>
       </main>
     </div>
