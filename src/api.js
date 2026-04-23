@@ -78,6 +78,7 @@ export const friendAPI = {
 export const profileAPI = {
   getProfile: () => api.get('/profile/me'),
   getPublicProfile: (userId) => api.get(`/profile/${userId}`),
+  searchUsers: (query) => api.get(`/profile/search/${encodeURIComponent(query)}`),
   updateProfile: (name, bio, avatar) =>
     api.patch('/profile/me', { name, bio, avatar }),
   getStats: () => api.get('/profile/me/stats'),
