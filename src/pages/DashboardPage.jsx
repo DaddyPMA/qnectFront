@@ -31,7 +31,7 @@ const DashboardPage = () => {
       ]);
       setFiles(filesRes.data.files || []);
       setFolders(foldersRes.data.folders || []);
-    } catch {
+    } catch (err) {
       setError('Failed to load data');
     } finally {
       setLoading(false);
@@ -41,13 +41,15 @@ const DashboardPage = () => {
   const handleCreateFolder = async (e) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
+
     try {
+      setError('');
       await folderAPI.createFolder(newFolderName, currentFolderId);
       setNewFolderName('');
       setSuccess('Folder created');
       loadData();
       setTimeout(() => setSuccess(''), 3000);
-    } catch {
+    } catch (err) {
       setError('Failed to create folder');
     }
   };
@@ -55,38 +57,42 @@ const DashboardPage = () => {
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     try {
+      setError('');
       await fileAPI.uploadFile(file, currentFolderId, filePermission);
       setSuccess('File uploaded successfully');
       e.target.value = '';
       loadData();
       setTimeout(() => setSuccess(''), 3000);
-    } catch {
+    } catch (err) {
       setError('Failed to upload file');
     }
   };
 
   const handleDeleteFile = async (fileId) => {
-    if (!confirm('Delete this file?')) return;
-    try {
-      await fileAPI.deleteFile(fileId);
-      setSuccess('File deleted');
-      loadData();
-      setTimeout(() => setSuccess(''), 3000);
-    } catch {
-      setError('Failed to delete file');
+    if (confirm('Delete this file?')) {
+      try {
+        await fileAPI.deleteFile(fileId);
+        setSuccess('File deleted');
+        loadData();
+        setTimeout(() => setSuccess(''), 3000);
+      } catch (err) {
+        setError('Failed to delete file');
+      }
     }
   };
 
   const handleDeleteFolder = async (folderId) => {
-    if (!confirm('Delete this folder and all its contents?')) return;
-    try {
-      await folderAPI.deleteFolder(folderId);
-      setSuccess('Folder deleted');
-      loadData();
-      setTimeout(() => setSuccess(''), 3000);
-    } catch {
-      setError('Failed to delete folder');
+    if (confirm('Delete this folder and all its contents?')) {
+      try {
+        await folderAPI.deleteFolder(folderId);
+        setSuccess('Folder deleted');
+        loadData();
+        setTimeout(() => setSuccess(''), 3000);
+      } catch (err) {
+        setError('Failed to delete folder');
+      }
     }
   };
 
@@ -95,16 +101,24 @@ const DashboardPage = () => {
     navigate('/login');
   };
 
-  /* ========= ROUTING (PRIORITY FROM SECOND FILE) ========= */
-  const goToFriends = () => navigate('/friends');
-  const goToChat = () => navigate('/chat');
-  const goToProfile = () =>
-    navigate(currentUserId ? `/profile/${currentUserId}` : '/profile');
+  const handleGoToFriends = () => {
+    navigate('/friends');
+  };
+
+  const handleGoToProfile = () => {
+    navigate(`/profile/${currentUserId}`);
+  };
 
   const breadcrumbs = currentFolderId ? (
     <button
       onClick={() => setCurrentFolderId(null)}
-      style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }}
+      style={{
+        background: 'none',
+        border: 'none',
+        color: '#2563eb',
+        cursor: 'pointer',
+        textDecoration: 'underline',
+      }}
     >
       ← Back to root
     </button>
@@ -120,30 +134,35 @@ const DashboardPage = () => {
           <h1>Qnect Dashboard</h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <span style={{ color: '#6b7280' }}>Welcome, {user?.name}</span>
-            <button onClick={handleLogout} style={{ backgroundColor: '#dc2626', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px' }}>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
               Logout
             </button>
           </div>
         </div>
       </header>
 
+      {/* Main Content */}
       <main style={{ padding: '2rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {breadcrumbs}
+          <div style={{ marginBottom: '1rem' }}>{breadcrumbs}</div>
 
-          {/* Navigation Buttons */}
-          <div style={{ display: 'flex', gap: '1rem', margin: '1.5rem 0' }}>
-            <button onClick={goToFriends} className="btn-primary">Friends & Network</button>
-            <button onClick={goToChat} className="btn-chat">💬 Chat Rooms</button>
-            <button onClick={goToProfile} className="btn-primary">My Profile</button>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+            <button onClick={handleGoToFriends}>Friends & Network</button>
+            <button onClick={handleGoToProfile}>My Profile</button>
           </div>
 
-          {/* Alerts */}
-          {error && <div className="alert-error">{error}</div>}
-          {success && <div className="alert-success">{success}</div>}
-
-          {/* Folder + File UI */}
-          {/* (unchanged from both originals – logic already merged) */}
+          {error && <div>{error}</div>}
+          {success && <div>{success}</div>}
         </div>
       </main>
     </div>
