@@ -16,10 +16,47 @@ const DashboardPage = () => {
   const [currentFolderId, setCurrentFolderId] = useState(null);
   const [newFolderName, setNewFolderName] = useState('');
   const [filePermission, setFilePermission] = useState('private');
+  const [previewUrls, setPreviewUrls] = useState({});
 
   useEffect(() => {
     loadData();
   }, [currentFolderId]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const abortController = new AbortController();
+    const previewUrlsMap = {};
+
+    const loadPreviews = async () => {
+      const imageFiles = files.filter((file) => file.mimeType?.startsWith('image/'));
+      for (const file of imageFiles) {
+        try {
+          const response = await fileAPI.getFilePreview(file.id, { signal: abortController.signal });
+          if (!isMounted) return;
+          const blobUrl = URL.createObjectURL(response.data);
+          previewUrlsMap[file.id] = blobUrl;
+        } catch (error) {
+          if (abortController.signal.aborted) return;
+          console.error('Failed to load preview for file', file.id, error);
+        }
+      }
+
+      if (isMounted) {
+        setPreviewUrls((prev) => {
+          Object.values(prev).forEach((url) => URL.revokeObjectURL(url));
+          return previewUrlsMap;
+        });
+      }
+    };
+
+    loadPreviews();
+
+    return () => {
+      isMounted = false;
+      abortController.abort();
+      Object.values(previewUrlsMap).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [files]);
 
   const loadData = async () => {
     setLoading(true);
@@ -309,7 +346,23 @@ const DashboardPage = () => {
                   <tbody>
                     {files.map((file) => (
                       <tr key={file.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                        <td style={{ padding: '1rem' }}>{file.originalName}</td>
+                        <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          {file.mimeType?.startsWith('image/') && previewUrls[file.id] ? (
+                            <img
+                              src={previewUrls[file.id]}
+                              alt={file.originalName}
+                              style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: '8px' }}
+                            />
+                          ) : (
+                            <div style={{ width: 60, height: 60, display: 'grid', placeItems: 'center', backgroundColor: '#f3f4f6', color: '#374151', borderRadius: '8px', fontSize: '0.75rem', textAlign: 'center', padding: 8 }}>
+                              {file.mimeType?.startsWith('image/') ? 'Loading' : 'No preview'}
+                            </div>
+                          )}
+                          <div>
+                            <div style={{ fontWeight: 600 }}>{file.originalName}</div>
+                            <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>{file.mimeType}</div>
+                          </div>
+                        </td>
                         <td style={{ padding: '1rem', color: '#6b7280' }}>{(parseInt(file.size, 10) / 1024).toFixed(2)} KB</td>
                         <td style={{ padding: '1rem' }}>
                           <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', backgroundColor: '#dbeafe', color: '#0c4a6e', borderRadius: '4px', fontSize: '0.875rem' }}>

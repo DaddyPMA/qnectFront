@@ -43,6 +43,7 @@ export const fileAPI = {
     api.get('/files', { params: { folderId } }),
   getFileDetails: (fileId) => api.get(`/files/${fileId}`),
   downloadFile: (fileId) => api.get(`/files/${fileId}/download`),
+  getFilePreview: (fileId, config = {}) => api.get(`/files/${fileId}/download`, { responseType: 'blob', ...config }),
   updatePermission: (fileId, permission) =>
     api.patch(`/files/${fileId}/permission`, { permission }),
   deleteFile: (fileId) => api.delete(`/files/${fileId}`),
