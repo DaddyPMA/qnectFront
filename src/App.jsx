@@ -7,6 +7,7 @@ import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import FriendsPage from './pages/FriendsPage';
+import ChatPage from './pages/ChatPage';
 import './styles.css';
 
 function App() {
@@ -18,6 +19,14 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={

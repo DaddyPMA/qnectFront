@@ -109,6 +109,10 @@ const DashboardPage = () => {
     navigate(`/profile/${currentUserId}`);
   };
 
+  const handleGoToChat = () => {
+    navigate('/chat');
+  };
+
   const breadcrumbs = currentFolderId ? (
     <button
       onClick={() => setCurrentFolderId(null)}
@@ -186,6 +190,21 @@ const DashboardPage = () => {
               }}
             >
               My Profile
+            </button>
+            <button
+              onClick={handleGoToChat}
+              style={{
+                padding: '0.75rem 1.25rem',
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                minWidth: '140px',
+              }}
+            >
+              Chat Room
             </button>
           </div>
 
