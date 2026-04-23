@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../api';
+import api, { fileAPI } from '../api';
 import "../styles.css";
 
 export default function ProfilePage() {
@@ -11,11 +11,26 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({ name: '', bio: '', avatar: '' });
   const [friendStatus, setFriendStatus] = useState('none');
   const [loading, setLoading] = useState(true);
+  const [loadingFiles, setLoadingFiles] = useState(true);
+  const [userFiles, setUserFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState({});
   const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   useEffect(() => {
     fetchProfile();
   }, [userId]);
+
+  const fetchUserFiles = async (viewUserId) => {
+    try {
+      setLoadingFiles(true);
+      const response = await fileAPI.getUserFiles(viewUserId);
+      setUserFiles(response.data.files || []);
+    } catch (error) {
+      console.error('Error fetching user files:', error);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -30,6 +45,7 @@ export default function ProfilePage() {
         bio: response.data.user.bio || '',
         avatar: response.data.user.avatar || ''
       });
+      await fetchUserFiles(userId);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -70,6 +86,42 @@ export default function ProfilePage() {
       alert('Failed to remove friend');
     }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    const abortController = new AbortController();
+    const previewMap = {};
+
+    const loadPreviews = async () => {
+      const imageFiles = userFiles.filter((file) => file.mimeType?.startsWith('image/'));
+      for (const file of imageFiles) {
+        try {
+          const response = await fileAPI.getFilePreview(file.id, { signal: abortController.signal });
+          if (!isMounted) return;
+          previewMap[file.id] = URL.createObjectURL(response.data);
+        } catch (error) {
+          if (abortController.signal.aborted) return;
+          console.error('Error loading file preview:', error);
+        }
+      }
+      if (isMounted) {
+        setPreviewUrls((prev) => {
+          Object.values(prev).forEach((url) => URL.revokeObjectURL(url));
+          return previewMap;
+        });
+      }
+    };
+
+    if (userFiles.length > 0) {
+      loadPreviews();
+    }
+
+    return () => {
+      isMounted = false;
+      abortController.abort();
+      Object.values(previewMap).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [userFiles]);
 
   if (loading) return <div className="loading">Loading profile...</div>;
   if (!profile) return <div className="error">User not found</div>;
@@ -149,6 +201,39 @@ export default function ProfilePage() {
           </>
         )}
       </div>
+
+      <section className="profile-files" style={{ marginTop: '2rem' }}>
+        <h2>Posted Files</h2>
+        {loadingFiles ? (
+          <p className="empty">Loading posts...</p>
+        ) : userFiles.length === 0 ? (
+          <p className="empty">No posted files visible.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+            {userFiles.map((file) => (
+              <div key={file.id} style={{ background: 'white', borderRadius: 12, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                {file.mimeType?.startsWith('image/') && previewUrls[file.id] ? (
+                  <img
+                    src={previewUrls[file.id]}
+                    alt={file.originalName}
+                    style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 10, marginBottom: 12 }}
+                  />
+                ) : (
+                  <div style={{ width: '100%', height: 140, borderRadius: 10, background: '#f3f4f6', display: 'grid', placeItems: 'center', color: '#475569', marginBottom: 12 }}>
+                    {file.mimeType?.startsWith('image/') ? 'Loading preview...' : 'File'}
+                  </div>
+                )}
+                <div>
+                  <h4 style={{ margin: '0 0 8px' }}>{file.originalName}</h4>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem' }}>{file.mimeType}</p>
+                  <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '0.9rem' }}>{(parseInt(file.size, 10) / 1024).toFixed(2)} KB</p>
+                  <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '0.9rem' }}>Permission: {file.permission}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
