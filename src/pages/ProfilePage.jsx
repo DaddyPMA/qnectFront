@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api, { fileAPI } from '../api';
+import { useAuth } from '../AuthContext';
+import { profileAPI, friendAPI, fileAPI } from '../api';
 import "../styles.css";
 
 export default function ProfilePage() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ name: '', bio: '', avatar: '' });
   const [friendStatus, setFriendStatus] = useState('none');
@@ -18,7 +21,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchProfile();
-  }, [userId]);
+  }, [userId, currentUser]);
 
   const fetchUserFiles = async (viewUserId) => {
     try {
@@ -34,21 +37,36 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const currentUser = JSON.parse(localStorage.getItem('user'));
+      setLoading(true);
+      setError('');
       setIsOwnProfile(currentUser?.id === userId);
 
-      const response = await api.get(`/profile/${userId}/with-status`);
-      setProfile(response.data.user);
-      setFriendStatus(response.data.friendStatus);
+      let response;
+      try {
+        response = await profileAPI.getProfileWithStatus(userId);
+      } catch (error) {
+        if ([404, 401, 403].includes(error.response?.status)) {
+          response = await profileAPI.getPublicProfile(userId);
+          setFriendStatus('none');
+        } else {
+          throw error;
+        }
+      }
+
+      const userData = response.data.user || response.data;
+      setProfile(userData);
+      setFriendStatus(response.data.friendStatus || 'none');
       setFormData({
-        name: response.data.user.name,
-        bio: response.data.user.bio || '',
-        avatar: response.data.user.avatar || ''
+        name: userData.name,
+        bio: userData.bio || '',
+        avatar: userData.avatar || ''
       });
       await fetchUserFiles(userId);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setError(error.response?.data?.error || 'Failed to load profile');
+      setProfile(null);
+    } finally {
       setLoading(false);
     }
   };
@@ -56,7 +74,7 @@ export default function ProfilePage() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      await api.patch('/profile/me', formData);
+      await profileAPI.updateProfile(formData.name, formData.bio, formData.avatar);
       setProfile({ ...profile, ...formData });
       setIsEditing(false);
     } catch (error) {
@@ -67,23 +85,23 @@ export default function ProfilePage() {
 
   const handleAddFriend = async () => {
     try {
-      await api.post(`/friends/request/${userId}`);
+      await friendAPI.sendRequest(userId);
       setFriendStatus('pending');
       alert('Friend request sent!');
     } catch (error) {
       console.error('Error sending friend request:', error);
-      alert('Failed to send friend request');
+      alert(error.response?.data?.error || 'Failed to send friend request');
     }
   };
 
   const handleRemoveFriend = async () => {
     if (!window.confirm('Remove this friend?')) return;
     try {
-      await api.delete(`/friends/${userId}`);
+      await friendAPI.removeFriend(userId);
       setFriendStatus('none');
     } catch (error) {
       console.error('Error removing friend:', error);
-      alert('Failed to remove friend');
+      alert(error.response?.data?.error || 'Failed to remove friend');
     }
   };
 
@@ -124,7 +142,7 @@ export default function ProfilePage() {
   }, [userFiles]);
 
   if (loading) return <div className="loading">Loading profile...</div>;
-  if (!profile) return <div className="error">User not found</div>;
+  if (!profile) return <div className="error">{error || 'User not found'}</div>;
 
   return (
     <div className="profile-page">

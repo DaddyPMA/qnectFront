@@ -1,10 +1,16 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI } from './api';
+import { authAPI, profileAPI } from './api';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user')) || null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,9 +27,24 @@ export const AuthProvider = ({ children }) => {
   const verifyToken = async () => {
     try {
       await authAPI.verifySession();
+      const storedUser = user || (() => {
+        try {
+          return JSON.parse(localStorage.getItem('user')) || null;
+        } catch {
+          return null;
+        }
+      })();
+      if (storedUser) {
+        setUser(storedUser);
+      } else {
+        const response = await profileAPI.getProfile();
+        setUser(response.data.user);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
       setLoading(false);
     } catch (err) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setToken(null);
       setUser(null);
       setLoading(false);
@@ -37,6 +58,7 @@ export const AuthProvider = ({ children }) => {
       const { token: newToken, user: userData } = response.data;
       
       localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
       setToken(newToken);
       setUser(userData);
       
@@ -55,6 +77,7 @@ export const AuthProvider = ({ children }) => {
       const { token: newToken, user: userData } = response.data;
       
       localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
       setToken(newToken);
       setUser(userData);
       
@@ -73,6 +96,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', err);
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setToken(null);
       setUser(null);
       setError(null);
